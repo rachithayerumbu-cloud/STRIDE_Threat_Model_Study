@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Threat Diagram — STRIDE Threat Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Threat Model Diagram</h1>
+  <p class="page-subtitle">
+    Visual representation of the system components, data flows, and trust boundaries
+    for <strong>{{ system.name }}</strong>.
+  </p>
+</div>
+
+<div class="diagram-legend-bar">
+  <span class="legend-item"><span class="legend-icon legend-user"></span> User / Client</span>
+  <span class="legend-item"><span class="legend-icon legend-webapp"></span> Web Application</span>
+  <span class="legend-item"><span class="legend-icon legend-db"></span> Database</span>
+  <span class="legend-item"><span class="legend-icon legend-api"></span> External API</span>
+  <span class="legend-item"><span class="legend-icon legend-boundary"></span> Trust Boundary</span>
+  <span class="legend-item"><span class="legend-icon legend-flow"></span> Data Flow</span>
+</div>
+
+<div class="diagram-container">
+  <canvas id="diagramCanvas"></canvas>
+</div>
+
+<div class="diagram-info-grid">
+  <div class="card">
+    <h3 class="card-title">Components ({{ system.components | length }})</h3>
+    <ul class="info-list">
+      {% for comp in system.components %}
+      <li>
+        <span class="comp-type-badge comp-{{ comp.type }}">{{ comp.type | replace('_', ' ') | title }}</span>
+        <strong>{{ comp.name }}</strong> — {{ comp.description }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h3 class="card-title">Data Flows ({{ system.data_flows | length }})</h3>
+    <ul class="info-list">
+      {% for df in system.data_flows %}
+      <li>
+        <span class="flow-arrow">→</span>
+        <strong>{{ df.from }}</strong> to <strong>{{ df.to }}</strong>
+        {% if df.label %} — {{ df.label }}{% endif %}
+        <span class="protocol-tag">{{ df.protocol }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% if not system.data_flows %}
+    <p class="text-muted">No data flows defined for this system.</p>
+    {% endif %}
+  </div>
+  {% if system.trust_boundaries %}
+  <div class="card">
+    <h3 class="card-title">Trust Boundaries ({{ system.trust_boundaries | length }})</h3>
+    <ul class="info-list">
+      {% for tb in system.trust_boundaries %}
+      <li>
+        <strong>{{ tb.name }}</strong> — {{ tb.description }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Pass system data to JavaScript -->
+<script>
+  window.SYSTEM_DATA = {{ system | tojson }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/diagram.js') }}"></script>
+{% endblock %}

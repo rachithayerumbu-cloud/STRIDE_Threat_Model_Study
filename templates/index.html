@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — STRIDE Threat Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">🛡️ STRIDE Threat Model Analyzer</h1>
+  <p class="page-subtitle">
+    Identify, analyse, and mitigate security threats using the STRIDE methodology.
+    Built for students, developers, and security enthusiasts.
+  </p>
+</div>
+
+<!-- Quick Action Buttons -->
+<div class="action-bar">
+  <a href="{{ url_for('assessment') }}" class="btn btn-primary">➕ New Assessment</a>
+  <a href="{{ url_for('load_sample') }}" class="btn btn-secondary">🛒 Load Sample System</a>
+  {% if summary %}
+  <a href="{{ url_for('report') }}" class="btn btn-outline">📄 View Last Report</a>
+  {% endif %}
+</div>
+
+<!-- Summary Cards (only if an assessment exists) -->
+{% if summary %}
+<section class="section">
+  <h2 class="section-title">Current Assessment — {{ system.name }}</h2>
+  <div class="cards-grid cards-4">
+    <div class="card card-stat">
+      <div class="stat-number text-cyan">{{ summary.total_threats }}</div>
+      <div class="stat-label">Total Threats</div>
+    </div>
+    <div class="card card-stat">
+      <div class="stat-number text-red">{{ summary.risk_counts.High }}</div>
+      <div class="stat-label">High Risk</div>
+    </div>
+    <div class="card card-stat">
+      <div class="stat-number text-yellow">{{ summary.risk_counts.Medium }}</div>
+      <div class="stat-label">Medium Risk</div>
+    </div>
+    <div class="card card-stat">
+      <div class="stat-number text-green">{{ summary.risk_counts.Low }}</div>
+      <div class="stat-label">Low Risk</div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- STRIDE Categories -->
+<section class="section">
+  <h2 class="section-title">The Six STRIDE Categories</h2>
+  <p class="section-desc">
+    STRIDE is a threat modelling framework developed by Microsoft. Each letter represents
+    a class of security threat. Click any card to learn more.
+  </p>
+  <div class="cards-grid cards-3">
+    {% for cat in stride_categories %}
+    <div class="card card-stride card-stride-{{ cat.color }}" onclick="toggleDetail('detail-{{ loop.index }}')">
+      <div class="stride-letter">{{ cat.letter }}</div>
+      <div class="stride-name">{{ cat.name }}</div>
+      <div class="stride-desc">{{ cat.description }}</div>
+      <div class="stride-detail hidden" id="detail-{{ loop.index }}">
+        {% if cat.name == "Spoofing" %}
+          <strong>Example:</strong> An attacker uses stolen credentials to log in as another user.<br/>
+          <strong>Counter:</strong> MFA, strong authentication.
+        {% elif cat.name == "Tampering" %}
+          <strong>Example:</strong> An attacker modifies a database record to change a product price.<br/>
+          <strong>Counter:</strong> Input validation, parameterised queries, TLS.
+        {% elif cat.name == "Repudiation" %}
+          <strong>Example:</strong> A user denies placing an order that was fraudulently made.<br/>
+          <strong>Counter:</strong> Audit logs, digital receipts, tamper-evident storage.
+        {% elif cat.name == "Information Disclosure" %}
+          <strong>Example:</strong> SQL injection leaks user passwords from the database.<br/>
+          <strong>Counter:</strong> Encryption, access control, error handling.
+        {% elif cat.name == "Denial of Service" %}
+          <strong>Example:</strong> An HTTP flood overwhelms the server, making it unreachable.<br/>
+          <strong>Counter:</strong> Rate limiting, WAF, CDN protection.
+        {% elif cat.name == "Elevation of Privilege" %}
+          <strong>Example:</strong> A regular user accesses an admin endpoint by guessing the URL.<br/>
+          <strong>Counter:</strong> RBAC, authorisation checks on every request.
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- How it Works -->
+<section class="section">
+  <h2 class="section-title">How to Use This Tool</h2>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>Describe your system</strong> — Enter the name, components, and data flows.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>Run the analysis</strong> — The STRIDE engine identifies threats applicable to your system.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>Review threats</strong> — Each threat shows likelihood, impact, risk level, and mitigation.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text"><strong>Download the report</strong> — Export as a text or CSV file for documentation.</div>
+    </div>
+  </div>
+</section>
+{% endblock %}

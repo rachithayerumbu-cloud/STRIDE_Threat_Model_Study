@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}STRIDE Threat Analyzer{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">🛡️</span>
+      <span class="brand-name">STRIDE Analyzer</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}"       class="nav-link {% if request.endpoint=='index'      %}active{% endif %}">Dashboard</a></li>
+      <li><a href="{{ url_for('assessment') }}"  class="nav-link {% if request.endpoint=='assessment' %}active{% endif %}">New Assessment</a></li>
+      <li><a href="{{ url_for('diagram') }}"     class="nav-link {% if request.endpoint=='diagram'    %}active{% endif %}">Threat Diagram</a></li>
+      <li><a href="{{ url_for('report') }}"      class="nav-link {% if request.endpoint=='report'     %}active{% endif %}">Reports</a></li>
+      <li><a href="{{ url_for('about') }}"       class="nav-link {% if request.endpoint=='about'      %}active{% endif %}">About</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+  </nav>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>STRIDE Threat Model Analyzer &mdash; Built with Flask &amp; OWASP principles &mdash; For educational use only</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}About — STRIDE Threat Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">About STRIDE Threat Model Analyzer</h1>
+  <p class="page-subtitle">A beginner-friendly educational tool for learning threat modelling.</p>
+</div>
+
+<div class="about-grid">
+  <div class="card">
+    <h2 class="card-title">What is STRIDE?</h2>
+    <p>
+      STRIDE is a threat modelling framework originally developed by Microsoft in 1999.
+      It provides a structured way to identify and categorise security threats during
+      the design phase of a system — before any code is written or deployed.
+    </p>
+    <p>
+      Each letter in STRIDE represents a category of threat:
+    </p>
+    <ul class="about-list">
+      <li><strong>S</strong>poofing — impersonating another entity</li>
+      <li><strong>T</strong>ampering — unauthorised data modification</li>
+      <li><strong>R</strong>epudiation — denying an action occurred</li>
+      <li><strong>I</strong>nformation Disclosure — exposing confidential data</li>
+      <li><strong>D</strong>enial of Service — making a system unavailable</li>
+      <li><strong>E</strong>levation of Privilege — gaining unauthorised permissions</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">How This Tool Works</h2>
+    <p>
+      This application uses a <strong>rule-based STRIDE engine</strong>. It matches
+      component types (user, web application, database, external API) and data flow
+      patterns against a knowledge base of known threat patterns.
+    </p>
+    <p>
+      For each matching rule, the engine generates a threat entry with:
+    </p>
+    <ul class="about-list">
+      <li>A description of the attack scenario</li>
+      <li>Likelihood and impact ratings (Low / Medium / High)</li>
+      <li>A risk level computed from a 3×3 risk matrix</li>
+      <li>Recommended mitigations and security controls</li>
+    </ul>
+    <p class="text-muted">
+      <em>This tool does not use AI, does not connect to the internet, and does not
+      scan any real systems. All analysis is transparent and rule-based.</em>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Risk Matrix</h2>
+    <p>Risk level is calculated from Likelihood × Impact:</p>
+    <table class="risk-matrix-table">
+      <thead>
+        <tr><th></th><th>Low Impact</th><th>Medium Impact</th><th>High Impact</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>High Likelihood</th>
+          <td class="rm-medium">Medium</td>
+          <td class="rm-high">High</td>
+          <td class="rm-high">High</td>
+        </tr>
+        <tr>
+          <th>Medium Likelihood</th>
+          <td class="rm-low">Low</td>
+          <td class="rm-medium">Medium</td>
+          <td class="rm-high">High</td>
+        </tr>
+        <tr>
+          <th>Low Likelihood</th>
+          <td class="rm-low">Low</td>
+          <td class="rm-low">Low</td>
+          <td class="rm-medium">Medium</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Technology Stack</h2>
+    <ul class="about-list">
+      <li><strong>Backend:</strong> Python 3 + Flask</li>
+      <li><strong>Frontend:</strong> HTML5, CSS3, Vanilla JavaScript</li>
+      <li><strong>Data Storage:</strong> JSON files + Python in-memory structures</li>
+      <li><strong>Diagram:</strong> HTML5 Canvas (no external libraries)</li>
+      <li><strong>No paid APIs, no databases, no ML models required</strong></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Reference Standards</h2>
+    <ul class="about-list">
+      <li>OWASP Top 10 Web Application Security Risks</li>
+      <li>OWASP Threat Dragon (threat modelling concepts)</li>
+      <li>Microsoft STRIDE Methodology</li>
+      <li>NIST SP 800-30 Risk Management Guide</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Limitations</h2>
+    <ul class="about-list">
+      <li>Analysis is rule-based, not exhaustive — manual review is always required.</li>
+      <li>The tool does not perform automated scanning or penetration testing.</li>
+      <li>Sample threats are based on common patterns; specific architectures may introduce unique risks.</li>
+      <li>Not a replacement for a professional security assessment.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

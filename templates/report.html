@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Threat Report — STRIDE Threat Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">📄 Threat Model Report</h1>
+  <p class="page-subtitle">Full STRIDE analysis report for <strong>{{ system.name }}</strong></p>
+</div>
+
+<!-- Download Buttons -->
+<div class="action-bar mb-lg">
+  <a href="{{ url_for('download_text') }}" class="btn btn-primary">⬇️ Download as TXT</a>
+  <a href="{{ url_for('download_csv') }}" class="btn btn-secondary">⬇️ Download as CSV</a>
+  <a href="{{ url_for('assessment') }}" class="btn btn-outline">🔄 New Assessment</a>
+</div>
+
+<!-- System Details -->
+<section class="report-section">
+  <h2 class="report-section-title">System Details</h2>
+  <div class="card">
+    <table class="info-table">
+      <tr><th>System Name</th><td>{{ system.name }}</td></tr>
+      <tr><th>Description</th><td>{{ system.description }}</td></tr>
+      <tr><th>Components</th><td>{{ system.components | length }}</td></tr>
+      <tr><th>Data Flows</th><td>{{ system.data_flows | length }}</td></tr>
+      <tr><th>Trust Boundaries</th><td>{{ system.trust_boundaries | length }}</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- Components -->
+<section class="report-section">
+  <h2 class="report-section-title">Components</h2>
+  <div class="card">
+    <table class="data-table">
+      <thead>
+        <tr><th>Type</th><th>Name</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        {% for comp in system.components %}
+        <tr>
+          <td><span class="comp-type-badge comp-{{ comp.type }}">{{ comp.type | replace('_',' ') | title }}</span></td>
+          <td>{{ comp.name }}</td>
+          <td>{{ comp.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if system.data_flows %}
+<section class="report-section">
+  <h2 class="report-section-title">Data Flows</h2>
+  <div class="card">
+    <table class="data-table">
+      <thead>
+        <tr><th>From</th><th>To</th><th>Description</th><th>Protocol</th></tr>
+      </thead>
+      <tbody>
+        {% for df in system.data_flows %}
+        <tr>
+          <td>{{ df.from }}</td>
+          <td>{{ df.to }}</td>
+          <td>{{ df.label }}</td>
+          <td><span class="protocol-tag">{{ df.protocol }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<!-- Summary -->
+<section class="report-section">
+  <h2 class="report-section-title">Risk Summary</h2>
+  <div class="cards-grid cards-4">
+    <div class="card card-stat">
+      <div class="stat-number text-cyan">{{ summary.total_threats }}</div>
+      <div class="stat-label">Total Threats</div>
+    </div>
+    <div class="card card-stat">
+      <div class="stat-number text-red">{{ summary.risk_counts.High }}</div>
+      <div class="stat-label">High Risk</div>
+    </div>
+    <div class="card card-stat">
+      <div class="stat-number text-yellow">{{ summary.risk_counts.Medium }}</div>
+      <div class="stat-label">Medium Risk</div>
+    </div>
+    <div class="card card-stat">
+      <div class="stat-number text-green">{{ summary.risk_counts.Low }}</div>
+      <div class="stat-label">Low Risk</div>
+    </div>
+  </div>
+
+  <div class="card mt-md">
+    <h3 class="card-title">Threats by STRIDE Category</h3>
+    <div class="category-bars">
+      {% for cat, count in summary.category_counts.items() %}
+      <div class="cat-bar-row">
+        <span class="cat-bar-label">{{ cat }}</span>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" style="width: {{ (count / summary.total_threats * 100) | round(0) | int }}%">{{ count }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Full Threat Table -->
+<section class="report-section">
+  <h2 class="report-section-title">Identified Threats</h2>
+  <div class="card overflow-x">
+    <table class="data-table threats-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Threat</th>
+          <th>Category</th>
+          <th>Affected Components</th>
+          <th>Likelihood</th>
+          <th>Impact</th>
+          <th>Risk</th>
+          <th>Mitigation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in threats %}
+        <tr class="threat-row-{{ t.risk_level | lower }}">
+          <td class="id-cell">{{ t.id }}</td>
+          <td class="name-cell">{{ t.name }}</td>
+          <td><span class="badge badge-category">{{ t.category }}</span></td>
+          <td>{{ t.affected_components | join(', ') }}</td>
+          <td><span class="badge-inline badge-{{ t.likelihood | lower }}">{{ t.likelihood }}</span></td>
+          <td><span class="badge-inline badge-{{ t.impact | lower }}">{{ t.impact }}</span></td>
+          <td><span class="badge-inline badge-risk-{{ t.risk_level | lower }}">{{ t.risk_level }}</span></td>
+          <td class="mitigation-cell">{{ t.mitigation }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Security Recommendations -->
+<section class="report-section">
+  <h2 class="report-section-title">Security Recommendations</h2>
+  <div class="cards-grid cards-2">
+    {% set controls = threats | map(attribute='security_control') | list %}
+    <div class="card">
+      <h3 class="card-title">Authentication &amp; Access Control</h3>
+      <ul class="rec-list">
+        <li>✅ Implement Multi-Factor Authentication (MFA) for all user accounts.</li>
+        <li>✅ Enforce Role-Based Access Control (RBAC) — deny access by default.</li>
+        <li>✅ Use strong, unique session tokens; regenerate on login.</li>
+        <li>✅ Implement account lockout after repeated failed login attempts.</li>
+        <li>✅ Apply the principle of least privilege to all system accounts.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="card-title">Data Protection</h3>
+      <ul class="rec-list">
+        <li>✅ Enforce HTTPS/TLS 1.2+ on all communication channels.</li>
+        <li>✅ Encrypt sensitive data at rest (passwords, PII, payment data).</li>
+        <li>✅ Hash passwords using bcrypt or Argon2 — never store plaintext.</li>
+        <li>✅ Use parameterised queries to prevent SQL injection.</li>
+        <li>✅ Validate and sanitise all user inputs server-side.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="card-title">Availability &amp; Resilience</h3>
+      <ul class="rec-list">
+        <li>✅ Implement rate limiting and request throttling.</li>
+        <li>✅ Deploy a Web Application Firewall (WAF).</li>
+        <li>✅ Set upload size limits and validate file types.</li>
+        <li>✅ Monitor system resources and set up automated alerts.</li>
+        <li>✅ Maintain regular database backups with offsite storage.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="card-title">Auditing &amp; Monitoring</h3>
+      <ul class="rec-list">
+        <li>✅ Log all security-relevant events with timestamps and user IDs.</li>
+        <li>✅ Use tamper-evident, write-once log storage.</li>
+        <li>✅ Retain transaction receipts and digital evidence.</li>
+        <li>✅ Implement real-time alerting for suspicious behaviour.</li>
+        <li>✅ Conduct regular security code reviews and penetration testing.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

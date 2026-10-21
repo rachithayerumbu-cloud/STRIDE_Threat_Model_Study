@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block title %}New Assessment — STRIDE Threat Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">New Threat Assessment</h1>
+  <p class="page-subtitle">
+    Describe your system below. The STRIDE engine will analyse it and identify potential threats.
+  </p>
+</div>
+
+{% if not threats %}
+<!-- ═══════════════════════════════════════════════════════════════ FORM ══ -->
+<div class="form-actions-top">
+  <form method="post">
+    <input type="hidden" name="action" value="load_sample" />
+    <button type="submit" class="btn btn-secondary">🛒 Load Sample System (Online Shop)</button>
+  </form>
+</div>
+
+<form method="post" id="assessmentForm" novalidate>
+  <input type="hidden" name="action" value="analyse" />
+
+  <!-- System Info -->
+  <div class="form-section">
+    <h2 class="form-section-title">System Information</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="system_name">System / Application Name <span class="required">*</span></label>
+        <input type="text" id="system_name" name="system_name"
+               value="{{ form_data.system_name if form_data else '' }}"
+               placeholder="e.g. Online Banking Application" required />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="system_description">System Description <span class="required">*</span></label>
+        <textarea id="system_description" name="system_description" rows="3"
+                  placeholder="Briefly describe what the system does and its purpose." required>{{ form_data.system_description if form_data else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Components -->
+  <div class="form-section">
+    <h2 class="form-section-title">System Components</h2>
+    <p class="form-hint">Add every major component of your system. At least one is required.</p>
+    <div id="componentsContainer">
+      <div class="component-row" data-index="0">
+        <div class="form-row three-col">
+          <div class="form-group">
+            <label>Component Name</label>
+            <input type="text" name="component_name" placeholder="e.g. Web Application Server" />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select name="component_type">
+              <option value="web_application">Web Application</option>
+              <option value="database">Database</option>
+              <option value="user">User / Client</option>
+              <option value="external_api">External API / Service</option>
+              <option value="mobile_app">Mobile App</option>
+              <option value="message_queue">Message Queue</option>
+              <option value="file_server">File Server</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" name="component_description" placeholder="Brief description" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline btn-sm" id="addComponent">+ Add Component</button>
+  </div>
+
+  <!-- Data Flows -->
+  <div class="form-section">
+    <h2 class="form-section-title">Data Flows</h2>
+    <p class="form-hint">Describe how data moves between components (optional but recommended).</p>
+    <div id="flowsContainer">
+      <div class="flow-row" data-index="0">
+        <div class="form-row four-col">
+          <div class="form-group">
+            <label>From</label>
+            <input type="text" name="flow_from" placeholder="e.g. User" />
+          </div>
+          <div class="form-group">
+            <label>To</label>
+            <input type="text" name="flow_to" placeholder="e.g. Web App" />
+          </div>
+          <div class="form-group">
+            <label>Label / Description</label>
+            <input type="text" name="flow_label" placeholder="e.g. Login request" />
+          </div>
+          <div class="form-group">
+            <label>Protocol</label>
+            <input type="text" name="flow_protocol" placeholder="HTTPS" value="HTTPS" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline btn-sm" id="addFlow">+ Add Data Flow</button>
+  </div>
+
+  <!-- Trust Boundaries -->
+  <div class="form-section">
+    <h2 class="form-section-title">Trust Boundaries</h2>
+    <p class="form-hint">Describe the trust zones in your system (optional).</p>
+    <div id="tbContainer">
+      <div class="tb-row" data-index="0">
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Boundary Name</label>
+            <input type="text" name="tb_name" placeholder="e.g. Internet Boundary" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" name="tb_description" placeholder="e.g. Separates internet users from internal network" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline btn-sm" id="addTB">+ Add Trust Boundary</button>
+  </div>
+
+  <!-- Submit -->
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary btn-lg">🔍 Analyse Threats</button>
+    <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
+  </div>
+</form>
+
+{% else %}
+<!-- ═══════════════════════════════════════════════════════════════ RESULTS ══ -->
+<div class="results-header">
+  <div class="results-title-bar">
+    <div>
+      <h2>Results for: <span class="text-cyan">{{ system.name }}</span></h2>
+      <p class="text-muted">{{ system.description }}</p>
+    </div>
+    <div class="results-actions">
+      <a href="{{ url_for('assessment') }}" class="btn btn-outline btn-sm">🔄 New Assessment</a>
+      <a href="{{ url_for('report') }}" class="btn btn-secondary btn-sm">📄 Full Report</a>
+    </div>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="cards-grid cards-4 mb-lg">
+  <div class="card card-stat">
+    <div class="stat-number text-cyan">{{ summary.total_threats }}</div>
+    <div class="stat-label">Total Threats</div>
+  </div>
+  <div class="card card-stat">
+    <div class="stat-number text-red">{{ summary.risk_counts.High }}</div>
+    <div class="stat-label">High Risk</div>
+  </div>
+  <div class="card card-stat">
+    <div class="stat-number text-yellow">{{ summary.risk_counts.Medium }}</div>
+    <div class="stat-label">Medium Risk</div>
+  </div>
+  <div class="card card-stat">
+    <div class="stat-number text-green">{{ summary.risk_counts.Low }}</div>
+    <div class="stat-label">Low Risk</div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <span class="filter-label">Filter by category:</span>
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn filter-S" data-filter="Spoofing">Spoofing</button>
+  <button class="filter-btn filter-T" data-filter="Tampering">Tampering</button>
+  <button class="filter-btn filter-R" data-filter="Repudiation">Repudiation</button>
+  <button class="filter-btn filter-I" data-filter="Information Disclosure">Info Disclosure</button>
+  <button class="filter-btn filter-D" data-filter="Denial of Service">DoS</button>
+  <button class="filter-btn filter-E" data-filter="Elevation of Privilege">Elevation</button>
+</div>
+
+<!-- Threat Cards -->
+<div id="threatsContainer">
+  {% for threat in threats %}
+  <div class="threat-card risk-{{ threat.risk_level | lower }}" data-category="{{ threat.category }}">
+    <div class="threat-card-header">
+      <div class="threat-id-badge">{{ threat.id }}</div>
+      <div class="threat-name">{{ threat.name }}</div>
+      <div class="threat-badges">
+        <span class="badge badge-category">{{ threat.category }}</span>
+        <span class="badge badge-risk-{{ threat.risk_level | lower }}">{{ threat.risk_level }} Risk</span>
+      </div>
+    </div>
+    <div class="threat-card-body">
+      <p class="threat-desc">{{ threat.description }}</p>
+      <div class="threat-meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Affected Components</span>
+          <span class="meta-value">{{ threat.affected_components | join(', ') }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Likelihood</span>
+          <span class="meta-value badge-inline badge-{{ threat.likelihood | lower }}">{{ threat.likelihood }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Impact</span>
+          <span class="meta-value badge-inline badge-{{ threat.impact | lower }}">{{ threat.impact }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Risk Level</span>
+          <span class="meta-value badge-inline badge-risk-{{ threat.risk_level | lower }}">{{ threat.risk_level }}</span>
+        </div>
+      </div>
+      <div class="threat-mitigation">
+        <div class="mitigation-block">
+          <span class="mitigation-label">🔧 Recommended Mitigation</span>
+          <p>{{ threat.mitigation }}</p>
+        </div>
+        <div class="mitigation-block">
+          <span class="mitigation-label">🛡️ Security Control</span>
+          <p>{{ threat.security_control }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Dynamic form rows
+  function addRow(containerId, templateClass, buttonId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const existing = container.querySelectorAll('.' + templateClass);
+    const clone = existing[0].cloneNode(true);
+    const idx = existing.length;
+    clone.dataset.index = idx;
+    clone.querySelectorAll('input, select, textarea').forEach(el => {
+      el.value = el.tagName === 'INPUT' && el.placeholder === 'HTTPS' ? 'HTTPS' : '';
+    });
+    // Add remove button
+    if (!clone.querySelector('.remove-row-btn')) {
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'btn btn-danger btn-xs remove-row-btn';
+      rm.textContent = '✕';
+      rm.onclick = () => clone.remove();
+      clone.appendChild(rm);
+    }
+    container.appendChild(clone);
+  }
+
+  const addComp = document.getElementById('addComponent');
+  if (addComp) addComp.addEventListener('click', () => addRow('componentsContainer', 'component-row', 'addComponent'));
+
+  const addFlow = document.getElementById('addFlow');
+  if (addFlow) addFlow.addEventListener('click', () => addRow('flowsContainer', 'flow-row', 'addFlow'));
+
+  const addTB = document.getElementById('addTB');
+  if (addTB) addTB.addEventListener('click', () => addRow('tbContainer', 'tb-row', 'addTB'));
+
+  // Category filter
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const filter = this.dataset.filter;
+      document.querySelectorAll('.threat-card').forEach(card => {
+        if (filter === 'all' || card.dataset.category === filter) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

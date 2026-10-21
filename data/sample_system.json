@@ -1,0 +1,87 @@
+{
+  "name": "Online Shopping Application",
+  "description": "An e-commerce platform where users can browse products, add items to a cart, and complete purchases using a payment gateway. The system consists of a web frontend, an application server, a relational database, and a third-party payment service.",
+  "components": [
+    {
+      "id": "user",
+      "name": "End User",
+      "type": "user",
+      "description": "A customer accessing the shopping platform via a web browser."
+    },
+    {
+      "id": "web_app",
+      "name": "Web Application Server",
+      "type": "web_application",
+      "description": "Handles HTTP requests, business logic, session management, and user authentication."
+    },
+    {
+      "id": "database",
+      "name": "Product & Order Database",
+      "type": "database",
+      "description": "Relational database storing user accounts, product catalog, order history, and payment records."
+    },
+    {
+      "id": "payment_service",
+      "name": "Payment Gateway (External API)",
+      "type": "external_api",
+      "description": "Third-party payment processor used to complete credit/debit card transactions."
+    }
+  ],
+  "data_flows": [
+    {
+      "id": "df1",
+      "from": "user",
+      "to": "web_app",
+      "label": "Login request / Browse products / Place order",
+      "protocol": "HTTPS"
+    },
+    {
+      "id": "df2",
+      "from": "web_app",
+      "to": "database",
+      "label": "Read/Write user data, orders, product catalog",
+      "protocol": "SQL over TLS"
+    },
+    {
+      "id": "df3",
+      "from": "web_app",
+      "to": "payment_service",
+      "label": "Payment authorization request",
+      "protocol": "HTTPS/REST"
+    },
+    {
+      "id": "df4",
+      "from": "payment_service",
+      "to": "web_app",
+      "label": "Payment confirmation / failure response",
+      "protocol": "HTTPS/REST"
+    },
+    {
+      "id": "df5",
+      "from": "database",
+      "to": "web_app",
+      "label": "Query results (user info, orders, products)",
+      "protocol": "SQL over TLS"
+    }
+  ],
+  "trust_boundaries": [
+    {
+      "id": "tb1",
+      "name": "Internet Boundary",
+      "description": "Separates untrusted internet users from the internal web application.",
+      "components": ["user"]
+    },
+    {
+      "id": "tb2",
+      "name": "Internal Network Boundary",
+      "description": "Separates the web application tier from the data tier (database).",
+      "components": ["web_app", "database"]
+    },
+    {
+      "id": "tb3",
+      "name": "External API Boundary",
+      "description": "Separates the internal system from the third-party payment service.",
+      "components": ["payment_service"]
+    }
+  ]
+}
