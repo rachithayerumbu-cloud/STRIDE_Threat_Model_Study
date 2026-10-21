@@ -254,14 +254,6 @@ This approach is **fully transparent** — every decision is traceable to a spec
 
 ---
 
-## Limitations
-
-- The rule set is finite; not every possible threat for every architecture is covered.
-- Threat ratings (likelihood, impact) are fixed per rule, not dynamically adapted to the specific system context.
-- The tool does not perform real vulnerability scanning or connect to external services.
-- Not a replacement for a professional security assessment or penetration test.
-
----
 
 ## Future Enhancements
 
