@@ -1,5 +1,5 @@
 """
-STRIDE Threat Model Analyzer — Flask Application
+STRIDE Threat Model study — Flask Application
 =================================================
 Main entry point. Defines all routes and wires together the modules.
 """
